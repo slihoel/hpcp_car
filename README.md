@@ -1,2 +1,8 @@
 把這行貼在CMD
-```pip install requirements```
+`pip install requirements`
+執行
+`src/main.py`
+
+collion detector 用來偵測碰撞
+>參考影片:
+>https://youtu.be/dn0hUgsok9M?si=PkoMPfbTY986aSMG
