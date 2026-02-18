@@ -1,7 +1,7 @@
 import pygame
 import math
 import pyautogui
-import collisiondetecter as cd
+import collisiondetector as cd
 
 pygame.init()
 
