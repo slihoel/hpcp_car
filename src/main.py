@@ -2,10 +2,11 @@ import pygame
 import math
 import pyautogui
 import collisiondetector as cd
+import Car
 
 pygame.init()
 WINX, WINY = pyautogui.size()
-window = pygame.display.set_mode((WINX, WINY - 500))
+window = pygame.display.set_mode((WINX, WINY))
 window.fill((50, 50, 50))
 pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
@@ -24,23 +25,20 @@ def cos_a_plus_b(a, b):
     return math.cos(a) * math.cos(b) - math.sin(a) * math.sin(b)
 
 
-class Car:
-    def __init__(self):
-        self.x = 100
-        self.y = 100
-        self.width = 120
-        self.height = 60
-        self.theta = 0
-        self.speed = 0
-        self.accelerate_rate = 0.001
-        self.speed_limit = 0.5
-        self.speed = 0
-        self.image = pygame.Surface((50, 30), pygame.SRCALPHA)
-        self.head = pygame.Surface((10, 30))
-        self.omega = 0
-        self.image = pygame.transform.scale(pygame.image.load("assets/car_image.png").convert_alpha(), (self.width * 1.8, self.height * 3))
-        self.mode = 1
+
+
+class Obstacle:
+    def __init__(self, x, y, width, height, path, id=0, angle=0):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.id = id
+        self.theta = angle
+        self.image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(path).convert_alpha(), (width, height)), math.degrees(self.theta))
+        self.isColliding = False
         
+
     def getCorners(self):
         hypotenuse = (math.sqrt(self.width**2 + self.height**2) / 2) * 0.95
         sin_theta = math.sin(self.theta)
@@ -54,72 +52,35 @@ class Car:
             (self.x - (cos_theta * cos_alpha + sin_theta * sin_alpha) * hypotenuse, self.y + (sin_theta * cos_alpha - sin_alpha * cos_theta) * hypotenuse)  #D=(-(cos(angle) cosa+sin(angle) sina) R,-(sin(angle) cosa-sina cos(angle)) R)
         ]
         return corners
-
-    def draw(self, surface):
-        rotated_image = pygame.transform.rotate(self.image, math.degrees(self.theta))
-        rect = rotated_image.get_rect(center=(self.x, self.y))
-        surface.blit(rotated_image, rect)
-
-    def accelerate(self, delta_time, direction):
-        if self.speed < 0:
-            if self.mode == 1:
-                if direction == 1:
-                    self.speed += self.accelerate_rate * delta_time * direction * self.mode
-                else:
-                    return
-            elif self.speed < -self.speed_limit:
-                self.speed = -self.speed_limit
-            else:
-                self.speed += self.accelerate_rate * delta_time * direction * self.mode
-        else:
-            if self.mode == -1:
-                if direction == +1:
-                    self.speed += self.accelerate_rate * delta_time * direction * self.mode
-                else:
-                    return
-            elif self.speed > self.speed_limit:
-                self.speed = self.speed_limit
-            else:
-                self.speed += self.accelerate_rate * delta_time * direction * self.mode
-    
-    def run(self, delta_time):
-        self.x += self.speed * math.cos(self.theta) * delta_time
-        self.y -= self.speed * math.sin(self.theta) * delta_time
-    def turn(self, delta_time, direction):
-        self.omega = 0.003 * direction * (self.speed / self.speed_limit)
-        self.theta += self.omega * delta_time
-        if self.theta > 2 * math.pi:
-            self.theta -= 2 * math.pi
-
-
-class Obstacle:
-    def __init__(self, x, y, width, height, id=0):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.id = id
-        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
-        self.image.fill((200, 0, 100))
-        self.isColliding = False
-
-    def getCorners(self):
-        return [
-            (self.x - self.width / 2, self.y - self.height / 2),
-            (self.x + self.width / 2, self.y - self.height / 2),
-            (self.x + self.width / 2, self.y + self.height / 2),
-            (self.x - self.width / 2, self.y + self.height / 2)
-        ]
     
     def draw(self, surface):
         rect = self.image.get_rect(center=(self.x, self.y))
         surface.blit(self.image, rect)
-    
-    
+        
 
-car = Car()
-obstacles = [Obstacle(300, 300, 100, 50, 0), Obstacle(500, 200, 50, 100, 1), Obstacle(400, 500, 150, 30, 2)]
+car = Car.Car()
 
+obstacles = [
+    Obstacle(250, 0, 50, 50, "assets/white_wall.png", 0), 
+    Obstacle(250, 50, 50, 50, "assets/red_wall.png", 1),
+    Obstacle(250, 100, 50, 50, "assets/white_wall.png", 2),
+    Obstacle(250, 150, 50, 50, "assets/red_wall.png", 3),
+    Obstacle(250, 200, 50, 50, "assets/white_wall.png", 4),
+    Obstacle(250, 250, 50, 50, "assets/red_wall.png", 5),
+    Obstacle(250, 300, 50, 50, "assets/white_wall.png", 6),
+    Obstacle(250, 350, 50, 50, "assets/red_wall.png", 7),
+    Obstacle(250, 400, 50, 50, "assets/white_wall.png", 8),
+    Obstacle(254.8, 430.9, 50, 50, "assets/red_wall.png", 10, 0.31),
+    Obstacle(269.1, 458.8, 50, 50, "assets/white_wall.png", 11, 0.63),
+    Obstacle(291.2, 481.0, 50, 50, "assets/red_wall.png", 12, 0.94),
+    Obstacle(319.1, 495.1, 50, 50, "assets/white_wall.png", 13, 1.26),
+    Obstacle(350.0, 500.0, 50, 50, "assets/red_wall.png", 14, 1.57),
+    Obstacle(400, 500, 50, 50, "assets/white_wall.png", 15),
+    Obstacle(450, 500, 50, 50, "assets/red_wall.png", 16),
+    Obstacle(500, 500, 50, 50, "assets/white_wall.png", 17),
+    Obstacle(550, 500, 50, 50, "assets/red_wall.png", 18),
+    Obstacle(600, 500, 50, 50, "assets/white_wall.png", 19),
+]
 def update():
     window.fill((50, 50, 50))
     if keystates['w']:
@@ -178,7 +139,7 @@ while running:
                 #print("d key pressed")
             if event.key == pygame.K_r:
                 car.x = 100
-                car.y = 100
+                car.y = 100        
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
                 keystates['w'] = False
