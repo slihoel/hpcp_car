@@ -4,11 +4,13 @@ import pyautogui
 import collisiondetector as cd
 
 pygame.init()
-
+WINX, WINY = pyautogui.size()
+window = pygame.display.set_mode((WINX, WINY - 500))
+window.fill((50, 50, 50))
+pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
 delta_time = 0
 keystates = {'w': False, 's': False, 'a': False, 'd': False}
-WINX, WINY = pyautogui.size()
 
 
 def draw_Corners(corners):
@@ -26,8 +28,8 @@ class Car:
     def __init__(self):
         self.x = 100
         self.y = 100
-        self.width = 50
-        self.height = 30
+        self.width = 120
+        self.height = 60
         self.theta = 0
         self.speed = 0
         self.accelerate_rate = 0.001
@@ -36,8 +38,8 @@ class Car:
         self.image = pygame.Surface((50, 30), pygame.SRCALPHA)
         self.head = pygame.Surface((10, 30))
         self.omega = 0
-        self.image.fill((255, 0, 0))
-        self.head.fill((0, 0, 255))
+        self.image = pygame.transform.scale(pygame.image.load("assets/car_image.png").convert_alpha(), (self.width * 1.8, self.height * 3))
+        self.mode = 1
         
     def getCorners(self):
         hypotenuse = (math.sqrt(self.width**2 + self.height**2) / 2) * 0.95
@@ -54,24 +56,37 @@ class Car:
         return corners
 
     def draw(self, surface):
-        self.image.blit(self.head, (40, 0))
         rotated_image = pygame.transform.rotate(self.image, math.degrees(self.theta))
         rect = rotated_image.get_rect(center=(self.x, self.y))
         surface.blit(rotated_image, rect)
 
     def accelerate(self, delta_time, direction):
-        self.speed += self.accelerate_rate * delta_time * direction
-        if self.speed > self.speed_limit:
-            self.speed = self.speed_limit
         if self.speed < 0:
-            self.speed = 0
+            if self.mode == 1:
+                if direction == 1:
+                    self.speed += self.accelerate_rate * delta_time * direction * self.mode
+                else:
+                    return
+            elif self.speed < -self.speed_limit:
+                self.speed = -self.speed_limit
+            else:
+                self.speed += self.accelerate_rate * delta_time * direction * self.mode
+        else:
+            if self.mode == -1:
+                if direction == +1:
+                    self.speed += self.accelerate_rate * delta_time * direction * self.mode
+                else:
+                    return
+            elif self.speed > self.speed_limit:
+                self.speed = self.speed_limit
+            else:
+                self.speed += self.accelerate_rate * delta_time * direction * self.mode
     
     def run(self, delta_time):
         self.x += self.speed * math.cos(self.theta) * delta_time
         self.y -= self.speed * math.sin(self.theta) * delta_time
-
     def turn(self, delta_time, direction):
-        self.omega = 0.005 * direction * (self.speed / self.speed_limit)
+        self.omega = 0.003 * direction * (self.speed / self.speed_limit)
         self.theta += self.omega * delta_time
         if self.theta > 2 * math.pi:
             self.theta -= 2 * math.pi
@@ -86,6 +101,7 @@ class Obstacle:
         self.id = id
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         self.image.fill((200, 0, 100))
+        self.isColliding = False
 
     def getCorners(self):
         return [
@@ -122,16 +138,24 @@ def update():
         draw_Corners(obstacle.getCorners())
         if cd.isColided(car.getCorners(), obstacle.getCorners()):
             if cd.isColided(obstacle.getCorners(), car.getCorners()):
-                print("Collided with obstacle", obstacle.id)
+                if not obstacle.isColliding:
+                    obstacle.isColliding = True
+                    print(f"Collision with obstacle id: {obstacle.id}")
+            else:
+                if obstacle.isColliding:
+                    obstacle.isColliding = False
+                    print(f"Collision with obstacle id: {obstacle.id} ended")
+        else:
+            if obstacle.isColliding:
+                obstacle.isColliding = False
+                print(f"Collision with obstacle id: {obstacle.id} ended")
+        
                 pass
     pygame.display.flip()
 
 
 
 
-window = pygame.display.set_mode((WINX, WINY - 500))
-window.fill((50, 50, 50))
-pygame.display.set_caption("My Game")
 
 
 running = True
@@ -168,11 +192,13 @@ while running:
             if event.key == pygame.K_d:
                 keystates['d'] = False
                 #print("d key released")
+            if event.key == pygame.K_q:
+                car.mode *= -1
     
     update()
 
     
 
-    delta_time = clock.tick(60)
+    delta_time = clock.tick(120)
 
 pygame.quit()
