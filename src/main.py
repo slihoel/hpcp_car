@@ -10,6 +10,18 @@ delta_time = 0
 keystates = {'w': False, 's': False, 'a': False, 'd': False}
 WINX, WINY = pyautogui.size()
 
+
+def draw_Corners(corners):
+    for i, corner in enumerate(corners):
+        pygame.draw.circle(window, (i * 63, i * 63, i * 63), corner, 5)
+
+def sin_a_plus_b(a, b):
+    return math.sin(a) * math.cos(b) + math.cos(a) * math.sin(b)
+
+def cos_a_plus_b(a, b):
+    return math.cos(a) * math.cos(b) - math.sin(a) * math.sin(b)
+
+
 class Car:
     def __init__(self):
         self.x = 100
@@ -33,15 +45,11 @@ class Car:
         cos_theta = math.cos(self.theta)
         sin_alpha = self.height / (2 * hypotenuse)
         cos_alpha = self.width / (2 * hypotenuse)
-        sin_theta_plus_alpha = sin_theta * cos_alpha + cos_theta * sin_alpha
-        cos_theta_plus_alpha = cos_theta * cos_alpha - sin_theta * sin_alpha
-        sin_theta_minus_alpha = sin_theta * cos_alpha - cos_theta * sin_alpha
-        cos_theta_minus_alpha = cos_theta * cos_alpha + sin_theta * sin_alpha
         corners = [
-            (self.x + cos_theta_plus_alpha * hypotenuse, self.y - sin_theta_plus_alpha * hypotenuse), #B
-            (self.x - sin_theta_minus_alpha * hypotenuse, self.y  + cos_theta_minus_alpha * hypotenuse), #A
-            (self.x - cos_theta_plus_alpha * hypotenuse, self.y + sin_theta_plus_alpha * hypotenuse), #C
-            (self.x + sin_theta_minus_alpha * hypotenuse, self.y - cos_theta_minus_alpha * hypotenuse)  #D
+            (self.x + (cos_alpha * cos_theta - sin_alpha * sin_theta) * hypotenuse, self.y - (sin_alpha * cos_theta + cos_alpha * sin_theta) * hypotenuse), #A=((cosa cos(angle)-sina sin(angle)) R,(sina cos(angle)+cosa sin(angle)) R)
+            (self.x + (cos_theta * cos_alpha + sin_theta * sin_alpha) * hypotenuse, self.y - (sin_theta * cos_alpha - cos_theta * sin_alpha) * hypotenuse), #B=((cos(angle) cosa+sin(angle) sina) R,(sin(angle) cosa-cos(angle) sina) R)
+            (self.x - (cos_theta * cos_alpha - sin_theta * sin_alpha) * hypotenuse, self.y + (sin_theta * cos_alpha + sin_alpha * cos_theta) * hypotenuse), #C=(-(cos(angle) cosa-sin(angle) sina) R,-(sin(angle) cosa+sina cos(angle)) R)
+            (self.x - (cos_theta * cos_alpha + sin_theta * sin_alpha) * hypotenuse, self.y + (sin_theta * cos_alpha - sin_alpha * cos_theta) * hypotenuse)  #D=(-(cos(angle) cosa+sin(angle) sina) R,-(sin(angle) cosa-sina cos(angle)) R)
         ]
         return corners
 
@@ -98,12 +106,6 @@ obstacles = [Obstacle(300, 300, 100, 50, 0), Obstacle(500, 200, 50, 100, 1), Obs
 
 def update():
     window.fill((50, 50, 50))
-    for obstacle in obstacles:
-        obstacle.draw(window)
-        if cd.isColided(car.getCorners(), obstacle.getCorners()):
-            if cd.isColided(car.getCorners(), obstacle.getCorners(), debug=True):
-                #print("Collided with obstacle", obstacle.id)
-                pass
     if keystates['w']:
         car.accelerate(delta_time, 1)
     if keystates['s']:
@@ -114,6 +116,14 @@ def update():
         car.turn(delta_time, -1)
     car.run(delta_time)
     car.draw(window)
+    for obstacle in obstacles:
+        obstacle.draw(window)
+        draw_Corners(car.getCorners())
+        draw_Corners(obstacle.getCorners())
+        if cd.isColided(car.getCorners(), obstacle.getCorners()):
+            if cd.isColided(obstacle.getCorners(), car.getCorners()):
+                print("Collided with obstacle", obstacle.id)
+                pass
     pygame.display.flip()
 
 
