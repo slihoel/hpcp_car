@@ -3,7 +3,7 @@
 執行
 `src/main.py`
 
-collion detector 用來偵測碰撞
+collision detector 用來偵測碰撞
 * w -> 加速
 * s -> 減速
 * a -> 左轉
