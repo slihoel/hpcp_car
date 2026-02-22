@@ -81,6 +81,13 @@ obstacles = [
     Obstacle(550, 500, 50, 50, "assets/red_wall.png", 18),
     Obstacle(600, 500, 50, 50, "assets/white_wall.png", 19),
 ]
+
+start = Obstacle(100, 100, 50, 50, "assets/blue_wall.png", -1)
+finish = Obstacle(WINX - 100, 100, 50, 50, "assets/green_wall.png", -2)
+
+obstacles.append(start)
+obstacles.append(finish)
+
 def update():
     window.fill((50, 50, 50))
     if keystates['w']:
@@ -92,7 +99,7 @@ def update():
     if keystates['d']:
         car.turn(delta_time, -1)
     car.run(delta_time)
-    car.draw(window)
+    
     for obstacle in obstacles:
         obstacle.draw(window)
         draw_Corners(car.getCorners())
@@ -110,8 +117,9 @@ def update():
             if obstacle.isColliding:
                 obstacle.isColliding = False
                 print(f"Collision with obstacle id: {obstacle.id} ended")
-        
                 pass
+
+    car.draw(window)
     pygame.display.flip()
 
 

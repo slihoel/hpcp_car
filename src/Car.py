@@ -7,8 +7,8 @@ class Car:
     def __init__(self):
         self.x = 100
         self.y = 100        
-        self.width = 120
-        self.height = 60
+        self.width = 80
+        self.height = 40
         self.theta = math.pi * 1.5
         self.speed = 0
         self.accelerate_rate = 0.001
@@ -17,7 +17,7 @@ class Car:
         self.image = pygame.Surface((50, 30), pygame.SRCALPHA)
         self.head = pygame.Surface((10, 30))
         self.omega = 0
-        self.image = pygame.transform.scale(pygame.image.load("assets/car_image.png").convert_alpha(), (self.width * 1.8, self.height * 3))
+        self.image = pygame.transform.scale(pygame.image.load("assets/car_image.png").convert_alpha(), (self.width, self.height))
         self.mode = 1
         
     def getCorners(self):
@@ -62,14 +62,15 @@ class Car:
                 self.speed += self.accelerate_rate * delta_time * direction * self.mode
     
     def run(self, delta_time):
-        if abs(self.speed) < 0.01:
-            self.speed = 0
-            return
         self.x += self.speed * math.cos(self.theta) * delta_time
         self.y -= self.speed * math.sin(self.theta) * delta_time
 
     def turn(self, delta_time, direction):
-        self.omega = 0.003 * direction * self.speed
+        self.omega = 0.0008 * direction / self.speed if abs(self.speed) >= 0.02 else 0
+        if self.omega > 0.003:
+            self.omega = 0.003
+        elif self.omega < -0.003:
+            self.omega = -0.003
         self.theta += self.omega * delta_time
         if self.theta > 2 * math.pi:
             self.theta -= 2 * math.pi
