@@ -5,7 +5,7 @@ import pygame
 
 class Car:
     def __init__(self):
-        self.x = 100
+        self.x = 200
         self.y = 100        
         self.width = 80
         self.height = 40
