@@ -14,7 +14,9 @@ pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
 delta_time = 0
 keystates = {'w': False, 's': False, 'a': False, 'd': False}
-
+gamestate = "playing"
+timer = 0
+collide = 0
 
 def draw_Corners(corners):
     for i, corner in enumerate(corners):
@@ -30,41 +32,53 @@ def cos_a_plus_b(a, b):
 car = Car.Car()
 
 
-obstacles = drawmap.getMap(1)
+obstacles = drawmap.getMap()
 
-def update():
+def update(gamestate=gamestate, timer=timer):
     window.fill((50, 50, 50))
-    if keystates['w']:
-        car.accelerate(delta_time, 1)
-    if keystates['s']:
-        car.accelerate(delta_time, -1)
-    if keystates['a']:
-        car.turn(delta_time, 1)
-    if keystates['d']:
-        car.turn(delta_time, -1)
-    car.run(delta_time)
-    
-    for obstacle in obstacles:
-        obstacle.draw(window)
-        draw_Corners(car.getCorners())
-        draw_Corners(obstacle.getCorners())
-        if cd.isColided(car.getCorners(), obstacle.getCorners()):
-            if cd.isColided(obstacle.getCorners(), car.getCorners()):
-                if not obstacle.isColliding:
-                    obstacle.isColliding = True
-                    print(f"Collision with obstacle id: {obstacle.id}")
+    if gamestate == "playing":
+        if keystates['w']:
+            car.accelerate(delta_time, 1)
+        if keystates['s']:
+            car.accelerate(delta_time, -1)
+        if keystates['a']:
+            car.turn(delta_time, 1)
+        if keystates['d']:
+            car.turn(delta_time, -1)
+        car.run(delta_time)
+        
+        for obstacle in obstacles:
+            obstacle.draw(window)
+            draw_Corners(car.getCorners())
+            draw_Corners(obstacle.getCorners())
+            if cd.isColided(car.getCorners(), obstacle.getCorners()):
+                if cd.isColided(obstacle.getCorners(), car.getCorners()):
+                    if not obstacle.isColliding:
+                        obstacle.isColliding = True
+                        print(f"Collision with obstacle id: {obstacle.id}")
+                        if obstacle.id == -1:
+                            gamestate = "win"
+                else:
+                    if obstacle.isColliding:
+                        obstacle.isColliding = False
+                        print(f"Collision with obstacle id: {obstacle.id} ended")
             else:
                 if obstacle.isColliding:
                     obstacle.isColliding = False
                     print(f"Collision with obstacle id: {obstacle.id} ended")
-        else:
-            if obstacle.isColliding:
-                obstacle.isColliding = False
-                print(f"Collision with obstacle id: {obstacle.id} ended")
-                pass
+        car.draw(window)
 
-    car.draw(window)
+    elif gamestate == "win":
+        font = pygame.font.Font(None, 100)
+        if timer < 60000:
+            text = font.render(f"Good!, Time:  {timer / 1000:.3f}s", True, (255, 255, 255))
+        else:
+            text = font.render(f"Good!, Time:  {timer // 60000}:{(timer % 60000) / 1000:.2f}s", True, (255, 255, 255))
+        window.blit(text, (500, 500))
+
     pygame.display.flip()
+
+    return gamestate, timer
 
 
 
@@ -108,10 +122,11 @@ while running:
             if event.key == pygame.K_q:
                 car.mode *= -1
     
-    update()
+    gamestate, timer = update(gamestate, timer)
 
     
 
     delta_time = clock.tick(120)
-
+    if gamestate == "playing":
+        timer += delta_time
 pygame.quit()
