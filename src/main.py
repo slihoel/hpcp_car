@@ -37,7 +37,14 @@ obstacles = drawmap.getMap(level)
 
 def update(gamestate=gamestate, timer=timer, collide=collide, pos=None, obstacles=obstacles):
     window.fill((50, 50, 50))
+
     if gamestate == "playing":
+        font = pygame.font.Font(None, 50)
+        if timer < 60000:
+            timer_text = font.render(f"Time:  {timer / 1000:.3f}s", True, (255, 255, 255))
+        else:
+            timer_text = font.render(f"Time:  {timer // 60000}:{(timer % 60000) / 1000:.2f}s", True, (255, 255, 255))
+        window.blit(timer_text, (10, 10))
         if keystates['w']:
             car.accelerate(delta_time, 1)
         if keystates['s']:
