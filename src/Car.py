@@ -6,10 +6,10 @@ import pygame
 class Car:
     def __init__(self):
         self.x = 200
-        self.y = 100        
+        self.y = 200        
         self.width = 80
         self.height = 40
-        self.theta = math.pi * 1.5
+        self.theta = 0
         self.speed = 0
         self.accelerate_rate = 0.001
         self.speed_limit = 0.5

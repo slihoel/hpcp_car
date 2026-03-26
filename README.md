@@ -3,6 +3,8 @@
 執行
 `src/main.py`
 
+遊戲規則:
+計時抵達綠色終點時間，不能碰到邊界
 collision detector 用來偵測碰撞
 * w -> 加速
 * s -> 減速

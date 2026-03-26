@@ -17,6 +17,7 @@ keystates = {'w': False, 's': False, 'a': False, 'd': False}
 gamestate = "playing"
 timer = 0
 collide = 0
+level = 1
 
 def draw_Corners(corners):
     for i, corner in enumerate(corners):
@@ -30,11 +31,11 @@ def cos_a_plus_b(a, b):
         
 
 car = Car.Car()
+pos = None
 
+obstacles = drawmap.getMap(level)
 
-obstacles = drawmap.getMap()
-
-def update(gamestate=gamestate, timer=timer):
+def update(gamestate=gamestate, timer=timer, collide=collide, pos=None, obstacles=obstacles):
     window.fill((50, 50, 50))
     if gamestate == "playing":
         if keystates['w']:
@@ -58,6 +59,8 @@ def update(gamestate=gamestate, timer=timer):
                         print(f"Collision with obstacle id: {obstacle.id}")
                         if obstacle.id == -1:
                             gamestate = "win"
+                        else:
+                            gamestate = "lose"
                 else:
                     if obstacle.isColliding:
                         obstacle.isColliding = False
@@ -70,15 +73,53 @@ def update(gamestate=gamestate, timer=timer):
 
     elif gamestate == "win":
         font = pygame.font.Font(None, 100)
+        btnfont = pygame.font.Font(None, 50)
         if timer < 60000:
             text = font.render(f"Good!, Time:  {timer / 1000:.3f}s", True, (255, 255, 255))
         else:
             text = font.render(f"Good!, Time:  {timer // 60000}:{(timer % 60000) / 1000:.2f}s", True, (255, 255, 255))
         window.blit(text, (500, 500))
+        restartbtn = pygame.Rect(500, 600, 160, 50)
+        nextbtn = pygame.Rect(800, 600, 200, 50)
+        restert_text = btnfont.render("Restart", True, (255, 255, 255)) 
+        next_text = btnfont.render("Next Level", True, (255, 255, 255))
+        pygame.draw.rect(window, (0, 255, 0), restartbtn)
+        pygame.draw.rect(window, (0, 255, 0), nextbtn)
+        window.blit(restert_text, (restartbtn.x + 20, restartbtn.y + 10))
+        window.blit(next_text, (nextbtn.x + 20, nextbtn.y + 10))
+        if pos is not None and restartbtn.collidepoint(pos):  
+            timer = 0
+            car.__init__()
+            gamestate = "playing"
+            pos = None
+        elif pos is not None and nextbtn.collidepoint(pos):
+            timer = 0
+            car.__init__()
+            gamestate = "playing"
+            level += 1
+            obstacles = drawmap.getMap(level)
+            pos = None
+        
+    
+    elif gamestate == "lose":
+        btnfont = pygame.font.Font(None, 50)
+        restartbtn = pygame.Rect(500, 600, 160, 50)
+        restert_text = btnfont.render("Restart", True, (255, 255, 255)) 
+        pygame.draw.rect(window, (255, 0, 0), restartbtn)
+        font = pygame.font.Font(None, 100)
+        text = font.render("Game Over!", True, (255, 255, 255))
+        window.blit(text, (500, 500))
+        window.blit(restert_text, (restartbtn.x + 20, restartbtn.y + 10)) 
+        if pos is not None and restartbtn.collidepoint(pos):  
+            timer = 0
+            car.__init__()
+            gamestate = "playing"
+            pos = None
+
 
     pygame.display.flip()
 
-    return gamestate, timer
+    return gamestate, timer, collide, pos, obstacles
 
 
 
@@ -121,8 +162,9 @@ while running:
                 #print("d key released")
             if event.key == pygame.K_q:
                 car.mode *= -1
-    
-    gamestate, timer = update(gamestate, timer)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+    gamestate, timer, collide, pos, obstacles = update(gamestate, timer, collide, pos, obstacles)
 
     
 
