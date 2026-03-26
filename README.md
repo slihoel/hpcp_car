@@ -1,5 +1,5 @@
 把這行貼在CMD
-`pip install requirements`
+`pip install -r requirements`
 執行
 `src/main.py`
 
