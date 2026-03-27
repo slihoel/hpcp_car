@@ -13,8 +13,8 @@ window.fill((50, 50, 50))
 pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
 delta_time = 0
-keystates = {'w': False, 's': False, 'a': False, 'd': False}
-gamestate = "playing"
+keystates = {'w': False, 's': False, 'a': False, 'd': False, "shift": False}
+gamestate = "starting"
 timer = 0
 collide = 0
 level = 1
@@ -35,7 +35,7 @@ pos = None
 
 obstacles = drawmap.getMap(level)
 
-def update(gamestate=gamestate, timer=timer, collide=collide, pos=None, obstacles=obstacles):
+def update(gamestate=gamestate, timer=timer, collide=collide, pos=None, obstacles=obstacles, keystates=keystates):
     window.fill((50, 50, 50))
 
     if gamestate == "playing":
@@ -123,10 +123,23 @@ def update(gamestate=gamestate, timer=timer, collide=collide, pos=None, obstacle
             gamestate = "playing"
             pos = None
 
+    elif gamestate == "starting":
+        btnfont = pygame.font.Font(None, 50)
+        startbtn = pygame.Rect(500, 600, 130, 50)
+        start_text = btnfont.render("Start", True, (255, 255, 255))
+        pygame.draw.rect(window, (0, 255, 0), startbtn)
+        window.blit(start_text, (startbtn.x + 20, startbtn.y + 10))
+        if pos is not None and (keystates["shift"] == 1 or startbtn.collidepoint(pos)):
+            timer = 0
+            car.__init__()
+            gamestate = "playing"
+            pos = None
+            keystates["shift"] = False
+
 
     pygame.display.flip()
 
-    return gamestate, timer, collide, pos, obstacles
+    return gamestate, timer, collide, pos, obstacles, keystates
 
 
 
@@ -153,7 +166,7 @@ while running:
                 #print("d key pressed")
             if event.key == pygame.K_r:
                 car.x = 100
-                car.y = 100        
+                car.y = 100
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
                 keystates['w'] = False
@@ -169,9 +182,11 @@ while running:
                 #print("d key released")
             if event.key == pygame.K_q:
                 car.mode *= -1
+            if event.key == pygame.K_LSHIFT:
+                keystates["shift"] = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
-    gamestate, timer, collide, pos, obstacles = update(gamestate, timer, collide, pos, obstacles)
+    gamestate, timer, collide, pos, obstacles, keystates = update(gamestate, timer, collide, pos, obstacles, keystates)
 
     
 
